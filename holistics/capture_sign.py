@@ -3,6 +3,7 @@ import cv2
 import mediapipe as mp
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -58,10 +59,10 @@ def create_frame_landmark_df(results,frame):
 def do_capture_loop():
     all_landmarks = []
     try:
+        last_time = time.time()
        # For webcam input:
         cap = cv2.VideoCapture(0)
         with mp_holistic.Holistic(min_detection_confidence=0.5,min_tracking_confidence=0.5) as holistic:
-              
             frame = 0
             while cap.isOpened():
                 frame += 1
@@ -71,7 +72,7 @@ def do_capture_loop():
                     # If loading a video, use 'break' instead of 'continue'.
                     continue
             
-            
+                
                 # To improve performance, optionally mark the image as not writeable to
                 # pass by reference.
                 image.flags.writeable = False
@@ -98,6 +99,10 @@ def do_capture_loop():
                     mp_holistic.POSE_CONNECTIONS,
                     landmark_drawing_spec=mp_drawing_styles
                     .get_default_pose_landmarks_style())
+                delta_time = time.time() - last_time
+                cur_fps = np.around(frame / delta_time, 1)
+                print(cur_fps)
+                print(cap.CAP_PROP_FPS)#0.6
                 # Flip the image horizontally for a selfie-view display.
                 cv2.imshow('MediaPipe Holistic', cv2.flip(image, 1))
                 if cv2.waitKey(5) & 0xFF == 27:
